@@ -16,4 +16,4 @@ start() -> application:start(?MODULE).
 stop() -> application:stop(?MODULE).
 
 type(Extension) -> case ets:lookup(?DbName, Extension) of
-	[{Extension, Type}|_] -> {ok, Type}; [] -> {error, not_found} end.
+	[{Extension, Type}|_] -> Type; [] -> [] end.
