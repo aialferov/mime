@@ -1,0 +1,29 @@
+#!/usr/bin/escript
+
+%%! -s inets
+
+-define(Url, "http://www.freeformatter.com/mime-types-list.html").
+
+main(_) -> io:format("~p~n",
+	[read(element(3, element(2, httpc:request(?Url))))]).
+
+read("<tbody>" ++ T) -> read_tbody(T, []);
+read([_|T]) -> read(T);
+read([]) -> false.
+
+read_tbody("</tbody>" ++ _, Acc) -> lists:reverse(Acc);
+read_tbody("<tr>" ++ T, Acc) ->
+	{[_, Type, Ext, _], Rest}  = read_tr(T, []),
+	read_tbody(Rest, [{Ext, Type}|Acc]);
+read_tbody([_|T], Acc) -> read_tbody(T, Acc);
+read_tbody([], Acc) -> lists:reverse(Acc).
+
+read_tr("</tr>" ++ T, Acc) -> {lists:reverse(Acc), T};
+read_tr("<td>" ++ T, Acc) ->
+	{Td, Rest}  = read_td(T, []), read_tr(Rest, [Td|Acc]);
+read_tr([_|T], Acc) -> read_tr(T, Acc);
+read_tr([], Acc) -> {lists:reverse(Acc), []}.
+
+read_td("</td>" ++ T, Acc) -> {lists:reverse(Acc), T};
+read_td([H|T], Acc) -> read_td(T, [H|Acc]);
+read_td([], Acc) -> {lists:reverse(Acc), []}.
